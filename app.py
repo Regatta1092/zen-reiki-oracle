@@ -255,3 +255,39 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
 
 st.markdown("---")
 st.caption("© 2026 Zen Balance Box. All rights reserved. Original work created exclusively for Zen Balance Box.")
+# ============================================
+# AUTO-RESIZE IFRAME SUPPORT (for WordPress embed)
+# ============================================
+import streamlit.components.v1 as components
+
+components.html(
+    """
+    <script>
+        function sendHeight() {
+            const height = document.body.scrollHeight + 100;
+            window.parent.postMessage({ height: height }, '*');
+        }
+        
+        // Send height multiple times to catch content changes
+        window.onload = function() {
+            sendHeight();
+            setTimeout(sendHeight, 600);
+            setTimeout(sendHeight, 1200);
+        };
+        
+        // Watch for DOM changes (when user draws cards)
+        const observer = new MutationObserver(function() {
+            sendHeight();
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Extra safety: send height periodically
+        setInterval(sendHeight, 2000);
+    </script>
+    """,
+    height=0
+)
