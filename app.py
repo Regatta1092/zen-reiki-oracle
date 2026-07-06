@@ -12,7 +12,6 @@ st.set_page_config(
 
 def get_image_path(card_name, suit):
     """Robust image finder with strong fallback for Treatment cards"""
-    # Clean the card name aggressively
     slug = card_name.lower()
     slug = re.sub(r'[–—−-]', '_', slug)
     slug = slug.replace("(", "").replace(")", "").replace("/", "_")
@@ -20,7 +19,6 @@ def get_image_path(card_name, suit):
     slug = re.sub(r'\s+', '_', slug.strip())
     slug = re.sub(r'_+', '_', slug).strip("_")
 
-    # Expected filename based on suit
     if suit == "Meditation (Top)":
         expected = f"meditation_{slug}.jpg"
     elif suit == "Chakra Focus (Left)":
@@ -34,28 +32,23 @@ def get_image_path(card_name, suit):
     else:
         expected = f"{slug}.jpg"
 
-    # Check root folder first
     if os.path.exists(expected):
         return expected
     if os.path.exists(os.path.join("images", expected)):
         return os.path.join("images", expected)
 
-    # Strong fallback: keyword search (especially helpful for Treatment)
+    # Strong fallback keyword search
     try:
         all_images = glob.glob("*.jpg") + glob.glob("images/*.jpg")
         key_words = [w for w in slug.split("_") if len(w) > 2]
-
         best_match = None
         best_score = 0
-
         for img_path in all_images:
             img_lower = img_path.lower()
             score = sum(1 for kw in key_words if kw in img_lower)
             if score > best_score:
                 best_score = score
                 best_match = img_path
-
-        # Require at least 2-3 keyword matches depending on card length
         min_required = 3 if suit == "Treatment (Bottom Left)" else 2
         if best_match and best_score >= min_required:
             return best_match
@@ -142,6 +135,7 @@ crystals = [
     {"name": "Malachite – Heart Transformation & Prosperity", "meaning": "Powerful transformation and emotional healing. Supports prosperity from inner alignment."}
 ]
 
+
 # ==================== APP INTERFACE ====================
 
 st.title("✨ Divine Reiki Light Oracle")
@@ -226,22 +220,23 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
 
         st.markdown("---")
 
-        # ========== PERSONALIZED GUIDANCE ==========
+        # ========== VERBOSE PERSONALIZED GUIDANCE ==========
         st.markdown("### Your Personalized Guidance")
+
         st.markdown(f"""
-        Based on your intention **“{intention}”**, the Divine Reiki Light Oracle has brought forward this powerful pattern.
+        Based on your intention **“{intention}”**, the Divine Reiki Light Oracle has brought forward a deeply coherent healing pattern designed specifically for where you are right now.
 
-        The **{draw['Meditation (Top)']['name']}** card invites you to begin with {draw['Meditation (Top)']['meaning'].lower()}
+        **The Top Card – {draw['Meditation (Top)']['name']}** sets the tone for your entire session. It gently invites you to begin by {draw['Meditation (Top)']['meaning'].lower()} This is the energetic atmosphere you are being asked to cultivate.
 
-        This is supported by a focus on your **{draw['Chakra Focus (Left)']['name']}**, where the energy wants to work most deeply.
+        **The Left Card – {draw['Chakra Focus (Left)']['name']}** reveals the main area where your energy wants to work. The healing is asking you to bring awareness, compassion, and Reiki into your {draw['Chakra Focus (Left)']['name'].lower()}. This is likely where old patterns, emotions, or beliefs are ready to shift.
 
-        The frequency of **{draw['Reiki Symbol (Right)']['name']}** is here to assist you with {draw['Reiki Symbol (Right)']['meaning'].lower()}
+        **The Right Card – {draw['Reiki Symbol (Right)']['name']}** brings in a specific Reiki frequency to support you. {draw['Reiki Symbol (Right)']['meaning']} Allow this symbol to work with you as you move through the session.
 
-        The recommended way to work with this energy is through **{draw['Treatment (Bottom Left)']['name']}**, which offers a clear and practical path forward.
+        **The Bottom Left Card – {draw['Treatment (Bottom Left)']['name']}** gives you the practical method. This is how you are being guided to work with the energy. {draw['Treatment (Bottom Left)']['meaning']} Trust this approach — it has been chosen for you.
 
-        Finally, the **{draw['Crystal Ally (Bottom Right)']['name']}** arrives as your ally to activate, ground, and amplify the entire healing pattern in your sacred space.
+        **The Bottom Right Card – {draw['Crystal Ally (Bottom Right)']['name']}** arrives as your physical ally. {draw['Crystal Ally (Bottom Right)']['meaning']} Place this crystal on or near the chakra indicated by your Left card, or hold it during your session. It will help anchor and amplify everything that has come through.
 
-        This combination is especially supportive for what you are moving through right now. Trust the guidance and allow it to unfold gently.
+        This combination is not random. It has been drawn with intention to meet you exactly where you are. Trust the process, stay open, and allow the healing to unfold in the way that is best for you.
         """)
 
         st.markdown("---")
