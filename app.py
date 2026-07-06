@@ -8,15 +8,13 @@ st.set_page_config(
     layout="centered"
 )
 
-IMAGE_DIR = "images"
-
 def get_image_path(card_name, suit):
-    """Generate expected filename and return full path if it exists"""
+    """Check root folder first, then images/ folder"""
     # Create clean slug from card name
     slug = card_name.lower()
     slug = slug.replace(" – ", "_").replace(" - ", "_").replace("(", "").replace(")", "")
     slug = slug.replace("/", "_").replace(",", "").replace("'", "")
-    slug = "_".join(slug.split())  # collapse multiple spaces
+    slug = "_".join(slug.split())
 
     if suit == "Meditation (Top)":
         filename = f"meditation_{slug}.jpg"
@@ -31,8 +29,14 @@ def get_image_path(card_name, suit):
     else:
         filename = f"{slug}.jpg"
 
-    path = os.path.join(IMAGE_DIR, filename)
-    return path if os.path.exists(path) else None
+    # Check root folder first (where user currently has images)
+    if os.path.exists(filename):
+        return filename
+    # Then check images/ folder
+    images_path = os.path.join("images", filename)
+    if os.path.exists(images_path):
+        return images_path
+    return None
 
 
 # ==================== FULL CARD DATA ====================
@@ -201,7 +205,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
         st.markdown(f"""
         Based on your intention **“{intention}”**, the Divine Reiki Light Oracle has brought forward this powerful pattern.
 
-        The **{draw['Meditation (Top)']['name']}** invites you to begin with {draw['Meditation (Top)']['meaning'].lower()}
+        The **{draw['Meditation (Top)']['name']}** card invites you to begin with {draw['Meditation (Top)']['meaning'].lower()}
 
         This is supported by a focus on your **{draw['Chakra Focus (Left)']['name']}**, where the energy wants to work most deeply.
 
