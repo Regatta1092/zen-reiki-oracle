@@ -10,9 +10,34 @@ st.set_page_config(
     layout="centered"
 )
 
+# Direct mapping for Treatment cards (most reliable method)
+TREATMENT_IMAGE_MAP = {
+    "Hands-On Self Treatment": "treatment_hands_on_self_treatment.jpg",
+    "Distant / Proxy Healing": "treatment_distant_proxy_healing.jpg",
+    "Emotional Body Release": "treatment_emotional_body_release.jpg",
+    "Mental Body Clearing": "treatment_mental_body_clearing.jpg",
+    "Aura Field Cleansing": "treatment_aura_field_cleansing.jpg",
+    "Energy Cord Cutting": "treatment_energy_cord_cutting.jpg",
+    "Symbol Activation Practice": "treatment_symbol_activation_practice.jpg",
+    "Chakra Balancing Sequence": "treatment_chakra_balancing_sequence.jpg",
+    "Reiki + Meditation Fusion": "treatment_reiki_meditation_fusion.jpg",
+    "Breath & Energy Flow Work": "treatment_breath_energy_flow_work.jpg",
+    "Daily Precept Integration": "treatment_daily_precept_integration.jpg",
+}
+
 def get_image_path(card_name, suit):
-    """Robust image finder with strong fallback for Treatment cards"""
-    # Clean the card name aggressively
+    """Robust image finder with direct map for Treatment"""
+    
+    # === TREATMENT: Use direct map first (most reliable) ===
+    if suit == "Treatment (Bottom Left)":
+        if card_name in TREATMENT_IMAGE_MAP:
+            filename = TREATMENT_IMAGE_MAP[card_name]
+            if os.path.exists(filename):
+                return filename
+            if os.path.exists(os.path.join("images", filename)):
+                return os.path.join("images", filename)
+    
+    # === Normal slug logic for other suits ===
     slug = card_name.lower()
     slug = re.sub(r'[–—−-]', '_', slug)
     slug = slug.replace("(", "").replace(")", "").replace("/", "_")
@@ -20,43 +45,36 @@ def get_image_path(card_name, suit):
     slug = re.sub(r'\s+', '_', slug.strip())
     slug = re.sub(r'_+', '_', slug).strip("_")
 
-    # Expected filename based on suit
     if suit == "Meditation (Top)":
         expected = f"meditation_{slug}.jpg"
     elif suit == "Chakra Focus (Left)":
         expected = f"chakra_{slug}.jpg"
     elif suit == "Reiki Symbol (Right)":
         expected = f"symbol_{slug}.jpg"
-    elif suit == "Treatment (Bottom Left)":
-        expected = f"treatment_{slug}.jpg"
     elif suit == "Crystal Ally (Bottom Right)":
         expected = f"crystal_{slug}.jpg"
     else:
         expected = f"{slug}.jpg"
 
-    # Check root folder first
+    # Check root folder
     if os.path.exists(expected):
         return expected
     if os.path.exists(os.path.join("images", expected)):
         return os.path.join("images", expected)
 
-    # Strong fallback: keyword search (especially helpful for Treatment)
+    # Fallback keyword search
     try:
         all_images = glob.glob("*.jpg") + glob.glob("images/*.jpg")
         key_words = [w for w in slug.split("_") if len(w) > 2]
-
         best_match = None
         best_score = 0
-
         for img_path in all_images:
             img_lower = img_path.lower()
             score = sum(1 for kw in key_words if kw in img_lower)
             if score > best_score:
                 best_score = score
                 best_match = img_path
-
-        # Require at least 2-3 keyword matches depending on card length
-        min_required = 3 if suit == "Treatment (Bottom Left)" else 2
+        min_required = 2
         if best_match and best_score >= min_required:
             return best_match
     except Exception:
