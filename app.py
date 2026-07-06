@@ -291,3 +291,36 @@ components.html(
     """,
     height=0
 )
+# ============================================
+# AUTO-RESIZE IFRAME SUPPORT
+# ============================================
+import streamlit.components.v1 as components
+
+components.html(
+    """
+    <script>
+        function sendHeight() {
+            const height = document.body.scrollHeight + 120;
+            window.parent.postMessage({ height: height }, '*');
+        }
+        
+        window.onload = function() {
+            sendHeight();
+            setTimeout(sendHeight, 800);
+            setTimeout(sendHeight, 1600);
+        };
+        
+        const observer = new MutationObserver(function() {
+            sendHeight();
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        setInterval(sendHeight, 2500);
+    </script>
+    """,
+    height=0
+)
