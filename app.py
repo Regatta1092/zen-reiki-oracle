@@ -84,28 +84,64 @@ crystals = [
     {"name": "Malachite – Heart Transformation & Prosperity", "meaning": "Powerful transformation and emotional healing. Supports prosperity from inner alignment."}
 ]
 
+# ==================== HELPER FUNCTION FOR PERSONALIZED GUIDANCE ====================
+
+def create_personalized_guidance(intention, draw):
+    """Creates a warm, connective paragraph linking all 5 cards to the user's intention."""
+    med = draw["Meditation (Top)"]
+    chak = draw["Chakra Focus (Left)"]
+    sym = draw["Reiki Symbol (Right)"]
+    treat = draw["Treatment (Bottom Left)"]
+    crystal = draw["Crystal Ally (Bottom Right)"]
+    
+    guidance = f"""
+    Your intention — *“{intention}”* — has been met with a beautifully coherent healing pattern.
+
+    The **{med['name']}** card invites you to begin not by striving, but by returning to a place of inner stillness and trust. From this calm center, the **{chak['name']}** shows that your healing wants to work through {chak['meaning'].lower()}. 
+
+    The **{sym['name']}** arrives as the perfect energetic key, offering {sym['meaning'].lower()}. 
+
+    To bring this into lived experience, the **{treat['name']}** method is recommended — {treat['meaning'].lower()}. 
+
+    Finally, the **{crystal['name']}** appears as your physical ally. Place it in your sacred space to {crystal['meaning'].lower()} and anchor the entire pattern into your daily life.
+
+    This is not random. This pattern was drawn for *you*, right now.
+    """
+    return guidance.strip()
+
 # ==================== APP INTERFACE ====================
 
-st.title("✨ Divine Reiki Light Oracle")
-st.subheader("5-Point Star Healing Draw • Zen Balance Box")
+# Header with branding
+st.markdown("""
+<div style="text-align: center; padding: 20px 0 10px 0;">
+    <h1 style="color: #2E4057; font-size: 2.4rem; margin-bottom: 0;">✨ Divine Reiki Light Oracle</h1>
+    <p style="color: #5C6B73; font-size: 1.1rem; margin-top: 4px;">5-Point Star Healing Draw • Zen Balance Box</p>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("""
-This oracle was created exclusively for Zen Balance Box by Zulekha Mir (Level 2 Reiki practitioner).  
-Enter your intention below, then draw your pattern. Each card is drawn intentionally from its suit to create a coherent healing message.
-""")
+<div style="max-width: 680px; margin: 0 auto; text-align: center;">
+<p style="color: #4A5568; font-size: 1.02rem; line-height: 1.6;">
+This oracle was created exclusively for <strong>Zen Balance Box</strong> by Zulekha Mir, Level 2 Reiki practitioner.  
+Enter your intention with an open heart. Each card is drawn intentionally from its suit to create a coherent, personalized healing message just for you.
+</p>
+</div>
+""", unsafe_allow_html=True)
 
+st.markdown("---")
+
+# Intention Input
 intention = st.text_input(
     "What is your intention for this draw?",
-    placeholder="I intend to release old emotional patterns and step into my power with clarity..."
+    placeholder="I intend to release old emotional patterns and step into my power with clarity and grace...",
+    key="intention_input"
 )
 
-if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_width=True):
+if st.button("✨ Draw My 5-Point Reiki Pattern", type="primary", use_container_width=True):
     if not intention.strip():
         st.warning("Please enter an intention to begin your draw.")
     else:
-        st.success("Your pattern has been drawn with clear intention.")
-
-        # Random draw (one from each suit)
+        # Perform the draw
         draw = {
             "Meditation (Top)": random.choice(meditations),
             "Chakra Focus (Left)": random.choice(chakras),
@@ -114,45 +150,101 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
             "Crystal Ally (Bottom Right)": random.choice(crystals)
         }
 
+        st.success("Your pattern has been drawn with clear intention.")
+
+        # ========== 5-POINT STAR LAYOUT ==========
         st.markdown("### Your 5-Point Star Pattern")
 
-        # Top - Meditation
-        col1, col2, col3 = st.columns([1, 2, 1])
+        # Top point - Meditation (centered)
+        col1, col2, col3 = st.columns([1, 2.2, 1])
         with col2:
-            card = draw["Meditation (Top)"]
-            st.markdown(f"**🔝 Top – Meditation**  \n**{card['name']}**  \n*{card['meaning']}*")
+            with st.container(border=True):
+                card = draw["Meditation (Top)"]
+                st.markdown(f"**🔝 TOP – MEDITATION**")
+                st.markdown(f"**{card['name']}**")
+                st.caption(card['meaning'])
 
-        # Left + Right
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            card = draw["Chakra Focus (Left)"]
-            st.markdown(f"**◀ Left – Chakra**  \n**{card['name']}**  \n*{card['meaning']}*")
-        with col3:
-            card = draw["Reiki Symbol (Right)"]
-            st.markdown(f"**▶ Right – Symbol**  \n**{card['name']}**  \n*{card['meaning']}*")
+        st.markdown("")
 
-        # Bottom Left + Bottom Right
-        col1, col2, col3 = st.columns([1, 2, 1])
+        # Middle row - Chakra (Left) + Symbol (Right)
+        col1, col2, col3 = st.columns([1, 0.15, 1])
         with col1:
-            card = draw["Treatment (Bottom Left)"]
-            st.markdown(f"**↙ Bottom Left – Treatment**  \n**{card['name']}**  \n*{card['meaning']}*")
+            with st.container(border=True):
+                card = draw["Chakra Focus (Left)"]
+                st.markdown(f"**◀ LEFT – CHAKRA FOCUS**")
+                st.markdown(f"**{card['name']}**")
+                st.caption(card['meaning'])
         with col3:
-            card = draw["Crystal Ally (Bottom Right)"]
-            st.markdown(f"**↘ Bottom Right – Crystal**  \n**{card['name']}**  \n*{card['meaning']}*")
+            with st.container(border=True):
+                card = draw["Reiki Symbol (Right)"]
+                st.markdown(f"**RIGHT – REIKI SYMBOL ▶**")
+                st.markdown(f"**{card['name']}**")
+                st.caption(card['meaning'])
+
+        st.markdown("")
+
+        # Bottom row - Treatment (Left) + Crystal (Right)
+        col1, col2, col3 = st.columns([1, 0.15, 1])
+        with col1:
+            with st.container(border=True):
+                card = draw["Treatment (Bottom Left)"]
+                st.markdown(f"**↙ BOTTOM LEFT – TREATMENT**")
+                st.markdown(f"**{card['name']}**")
+                st.caption(card['meaning'])
+        with col3:
+            with st.container(border=True):
+                card = draw["Crystal Ally (Bottom Right)"]
+                st.markdown(f"**BOTTOM RIGHT – CRYSTAL ALLY ↘**")
+                st.markdown(f"**{card['name']}**")
+                st.caption(card['meaning'])
 
         st.markdown("---")
 
-        # How to work with this pattern
-        st.markdown("### How to Work With This Pattern")
+        # ========== PERSONALIZED GUIDANCE (WARMTH) ==========
+        st.markdown("### Your Personalized Guidance")
+        
+        guidance_text = create_personalized_guidance(intention, draw)
+        st.markdown(guidance_text)
+
+        st.markdown("---")
+
+        # ========== HOW TO WORK WITH THIS PATTERN ==========
+        st.markdown("### How to Work With This Pattern in Your Sacred Space")
+
         st.markdown("""
-        1. Cleanse your space with Selenite, Palo Santo, or Florida Water.
-        2. Place your **Crystal Ally** on the chakra area indicated or in the center of your altar.
-        3. Activate the **Reiki Symbol** three times over your hands or the area of focus.
-        4. Follow the guidance of the **Treatment** card for 10–15 minutes.
-        5. End by placing both hands on the crystal and stating your intention out loud.
+        **1. Prepare Your Space**  
+        Cleanse your area with Selenite, Palo Santo, Florida Water, or your preferred method. Light a candle if it feels right.
+
+        **2. Place Your Crystal Ally**  
+        Position the **{crystal}** on the chakra area indicated in your draw, or in the center of your altar. This crystal activates and anchors the entire pattern.
+
+        **3. Activate the Reiki Symbol**  
+        Draw or visualize the **{symbol}** three times over your hands or the area of focus. Feel its energy activate.
+
+        **4. Follow the Treatment Guidance**  
+        Use the method shown in your **{treatment}** card for 10–15 minutes. Breathe deeply and allow the energy to flow.
+
+        **5. Close & Integrate**  
+        Place both hands on your crystal and speak your intention out loud. Thank the energy for its guidance. Keep the crystal near you for the next few days.
+        """.format(
+            crystal=draw["Crystal Ally (Bottom Right)"]['name'],
+            symbol=draw["Reiki Symbol (Right)"]['name'],
+            treatment=draw["Treatment (Bottom Left)"]['name']
+        ))
+
+        st.info("**Tip:** You can repeat this draw daily or whenever you feel called. Each pattern is unique to the moment you ask.")
+
+        # Disclaimer
+        st.caption("""
+        This is for reflection, meditation, and spiritual wellness only. It is not a substitute for medical or professional advice. 
+        Reiki healing is best received in person from a trained practitioner.
         """)
 
-        st.caption("This is for reflection, meditation, and spiritual wellness only. It is not a substitute for medical or professional advice. Reiki healing is best received in person from a trained practitioner.")
-
+# Footer
 st.markdown("---")
-st.caption("© 2026 Zen Balance Box. All rights reserved. Original work created exclusively for Zen Balance Box.")
+st.markdown("""
+<div style="text-align: center; color: #718096; font-size: 0.85rem;">
+© 2026 Zen Balance Box. All rights reserved.<br>
+Original work created exclusively for Zen Balance Box by Zulekha Mir.
+</div>
+""", unsafe_allow_html=True)
