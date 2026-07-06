@@ -11,17 +11,16 @@ st.set_page_config(
 )
 
 def get_image_path(card_name, suit):
-    """Robust image finder - tries exact match first, then keyword fallback"""
-    # Aggressive cleaning
+    """Robust image finder with strong fallback for Treatment cards"""
+    # Clean the card name aggressively
     slug = card_name.lower()
-    slug = re.sub(r'[–—−-]', '_', slug)           # any dash type → underscore
-    slug = slug.replace("(", "").replace(")", "")
-    slug = slug.replace("/", "_").replace(",", "").replace("'", "").replace(":", "")
+    slug = re.sub(r'[–—−-]', '_', slug)
+    slug = slug.replace("(", "").replace(")", "").replace("/", "_")
+    slug = slug.replace(",", "").replace("'", "").replace(":", "")
     slug = re.sub(r'\s+', '_', slug.strip())
-    slug = re.sub(r'_+', '_', slug)               # collapse multiple underscores
-    slug = slug.strip("_")
+    slug = re.sub(r'_+', '_', slug).strip("_")
 
-    # Build expected filenames
+    # Expected filename based on suit
     if suit == "Meditation (Top)":
         expected = f"meditation_{slug}.jpg"
     elif suit == "Chakra Focus (Left)":
@@ -35,22 +34,31 @@ def get_image_path(card_name, suit):
     else:
         expected = f"{slug}.jpg"
 
-    # Check root first
+    # Check root folder first
     if os.path.exists(expected):
         return expected
-    # Then images/ folder
     if os.path.exists(os.path.join("images", expected)):
         return os.path.join("images", expected)
 
-    # Fallback: keyword search among all jpg files
+    # Strong fallback: keyword search (especially helpful for Treatment)
     try:
         all_images = glob.glob("*.jpg") + glob.glob("images/*.jpg")
         key_words = [w for w in slug.split("_") if len(w) > 2]
+
+        best_match = None
+        best_score = 0
+
         for img_path in all_images:
             img_lower = img_path.lower()
-            # Match if at least 3 key words are found in the filename
-            if sum(1 for kw in key_words if kw in img_lower) >= min(3, len(key_words)):
-                return img_path
+            score = sum(1 for kw in key_words if kw in img_lower)
+            if score > best_score:
+                best_score = score
+                best_match = img_path
+
+        # Require at least 2-3 keyword matches depending on card length
+        min_required = 3 if suit == "Treatment (Bottom Left)" else 2
+        if best_match and best_score >= min_required:
+            return best_match
     except Exception:
         pass
 
@@ -174,7 +182,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
             img_path = get_image_path(card["name"], "Meditation (Top)")
             with st.container(border=True):
                 if img_path:
-                    st.image(img_path, use_container_width=True)
+                    st.image(img_path, width=280)
                 st.markdown(f"**🔝 Top – Meditation**  \n**{card['name']}**")
                 st.write(card["meaning"])
 
@@ -185,7 +193,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
             img_path = get_image_path(card["name"], "Chakra Focus (Left)")
             with st.container(border=True):
                 if img_path:
-                    st.image(img_path, use_container_width=True)
+                    st.image(img_path, width=280)
                 st.markdown(f"**◀ Left – Chakra**  \n**{card['name']}**")
                 st.write(card["meaning"])
         with col3:
@@ -193,7 +201,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
             img_path = get_image_path(card["name"], "Reiki Symbol (Right)")
             with st.container(border=True):
                 if img_path:
-                    st.image(img_path, use_container_width=True)
+                    st.image(img_path, width=280)
                 st.markdown(f"**▶ Right – Symbol**  \n**{card['name']}**")
                 st.write(card["meaning"])
 
@@ -204,7 +212,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
             img_path = get_image_path(card["name"], "Treatment (Bottom Left)")
             with st.container(border=True):
                 if img_path:
-                    st.image(img_path, use_container_width=True)
+                    st.image(img_path, width=280)
                 st.markdown(f"**↙ Bottom Left – Treatment**  \n**{card['name']}**")
                 st.write(card["meaning"])
         with col3:
@@ -212,7 +220,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
             img_path = get_image_path(card["name"], "Crystal Ally (Bottom Right)")
             with st.container(border=True):
                 if img_path:
-                    st.image(img_path, use_container_width=True)
+                    st.image(img_path, width=280)
                 st.markdown(f"**↘ Bottom Right – Crystal**  \n**{card['name']}**")
                 st.write(card["meaning"])
 
