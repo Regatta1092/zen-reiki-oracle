@@ -1,6 +1,8 @@
 import streamlit as st
 import random
 import os
+import re
+import glob
 
 st.set_page_config(
     page_title="Divine Reiki Light Oracle",
@@ -8,53 +10,57 @@ st.set_page_config(
     layout="centered"
 )
 
-# Exact filename map for Treatment cards (matches your uploaded files)
-TREATMENT_IMAGE_MAP = {
-    "Hands-On Self Treatment": "treatment_hands-on_self_treatment.jpg",
-    "Distant / Proxy Healing": "treatment_distant___proxy_healing.jpg",
-    "Emotional Body Release": "treatment_emotional_body_release.jpg",
-    "Mental Body Clearing": "treatment_mental_body_clearing.jpg",
-    "Aura Field Cleansing": "treatment_aura_field_cleansing.jpg",
-    "Energy Cord Cutting": "treatment_energy_cord_cutting.jpg",
-    "Symbol Activation Practice": "treatment_symbol_activation_practice.jpg",
-    "Chakra Balancing Sequence": "treatment_chakra_balancing_sequence.jpg",
-    "Reiki + Meditation Fusion": "treatment_reiki_+_meditation_fusion.jpg",
-    "Breath & Energy Flow Work": "treatment_breath_&_energy_flow_work.jpg",
-    "Daily Precept Integration": "treatment_daily_precept_integration.jpg",
-}
-
 def get_image_path(card_name, suit):
-    """Get image path - uses exact map for Treatment cards"""
-    
-    if suit == "Treatment (Bottom Left)":
-        if card_name in TREATMENT_IMAGE_MAP:
-            filename = TREATMENT_IMAGE_MAP[card_name]
-            if os.path.exists(filename):
-                return filename
-            if os.path.exists(os.path.join("images", filename)):
-                return os.path.join("images", filename)
-    
-    # Normal logic for other suits
+    """Robust image finder with strong fallback for Treatment cards"""
+    # Clean the card name aggressively
     slug = card_name.lower()
-    slug = slug.replace(" – ", "_").replace(" - ", "_").replace("(", "").replace(")", "")
-    slug = slug.replace("/", "_").replace(",", "").replace("'", "").replace(":", "")
-    slug = "_".join(slug.split())
+    slug = re.sub(r'[–—−-]', '_', slug)
+    slug = slug.replace("(", "").replace(")", "").replace("/", "_")
+    slug = slug.replace(",", "").replace("'", "").replace(":", "")
+    slug = re.sub(r'\s+', '_', slug.strip())
+    slug = re.sub(r'_+', '_', slug).strip("_")
 
+    # Expected filename based on suit
     if suit == "Meditation (Top)":
         expected = f"meditation_{slug}.jpg"
     elif suit == "Chakra Focus (Left)":
         expected = f"chakra_{slug}.jpg"
     elif suit == "Reiki Symbol (Right)":
         expected = f"symbol_{slug}.jpg"
+    elif suit == "Treatment (Bottom Left)":
+        expected = f"treatment_{slug}.jpg"
     elif suit == "Crystal Ally (Bottom Right)":
         expected = f"crystal_{slug}.jpg"
     else:
         expected = f"{slug}.jpg"
 
+    # Check root folder first
     if os.path.exists(expected):
         return expected
     if os.path.exists(os.path.join("images", expected)):
         return os.path.join("images", expected)
+
+    # Strong fallback: keyword search (especially helpful for Treatment)
+    try:
+        all_images = glob.glob("*.jpg") + glob.glob("images/*.jpg")
+        key_words = [w for w in slug.split("_") if len(w) > 2]
+
+        best_match = None
+        best_score = 0
+
+        for img_path in all_images:
+            img_lower = img_path.lower()
+            score = sum(1 for kw in key_words if kw in img_lower)
+            if score > best_score:
+                best_score = score
+                best_match = img_path
+
+        # Require at least 2-3 keyword matches depending on card length
+        min_required = 3 if suit == "Treatment (Bottom Left)" else 2
+        if best_match and best_score >= min_required:
+            return best_match
+    except Exception:
+        pass
 
     return None
 
@@ -225,7 +231,7 @@ if st.button("Draw My 5-Point Reiki Pattern", type="primary", use_container_widt
         st.markdown(f"""
         Based on your intention **“{intention}”**, the Divine Reiki Light Oracle has brought forward this powerful pattern.
 
-        The **{draw['Meditation (Top)']['name']}** card invites you to begin by {draw['Meditation (Top)']['meaning'].lower()}
+        The **{draw['Meditation (Top)']['name']}** card invites you to begin with {draw['Meditation (Top)']['meaning'].lower()}
 
         This is supported by a focus on your **{draw['Chakra Focus (Left)']['name']}**, where the energy wants to work most deeply.
 
