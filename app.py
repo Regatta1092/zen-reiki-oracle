@@ -1,8 +1,6 @@
 import streamlit as st
 import random
 import os
-import re
-import glob
 
 st.set_page_config(
     page_title="Divine Reiki Light Oracle",
@@ -10,25 +8,25 @@ st.set_page_config(
     layout="centered"
 )
 
-# Direct mapping for Treatment cards (most reliable method)
+# Exact filename map for Treatment cards (matches what you actually uploaded)
 TREATMENT_IMAGE_MAP = {
-    "Hands-On Self Treatment": "treatment_hands_on_self_treatment.jpg",
-    "Distant / Proxy Healing": "treatment_distant_proxy_healing.jpg",
-    "Emotional Body Release": "treatment_emotional_body_release.jpg",
-    "Mental Body Clearing": "treatment_mental_body_clearing.jpg",
-    "Aura Field Cleansing": "treatment_aura_field_cleansing.jpg",
-    "Energy Cord Cutting": "treatment_energy_cord_cutting.jpg",
-    "Symbol Activation Practice": "treatment_symbol_activation_practice.jpg",
-    "Chakra Balancing Sequence": "treatment_chakra_balancing_sequence.jpg",
-    "Reiki + Meditation Fusion": "treatment_reiki_meditation_fusion.jpg",
-    "Breath & Energy Flow Work": "treatment_breath_energy_flow_work.jpg",
-    "Daily Precept Integration": "treatment_daily_precept_integration.jpg",
+    "Hands-On Self Treatment": "treatment_hands-on_self_treatment.jpg.jpg",
+    "Distant / Proxy Healing": "treatment_distant___proxy_healing.jpg.jpg",
+    "Emotional Body Release": "treatment_emotional_body_release.jpg.jpg",
+    "Mental Body Clearing": "treatment_mental_body_clearing.jpg.jpg",
+    "Aura Field Cleansing": "treatment_aura_field_cleansing.jpg.jpg",
+    "Energy Cord Cutting": "treatment_energy_cord_cutting.jpg.jpg",
+    "Symbol Activation Practice": "treatment_symbol_activation_practice.jpg.jpg",
+    "Chakra Balancing Sequence": "treatment_chakra_balancing_sequence.jpg.jpg",
+    "Reiki + Meditation Fusion": "treatment_reiki_+_meditation_fusion.jpg.jpg",
+    "Breath & Energy Flow Work": "treatment_breath_&_energy_flow_work.jpg.jpg",
+    "Daily Precept Integration": "treatment_daily_precept_integration.jpg.jpg",
 }
 
 def get_image_path(card_name, suit):
-    """Robust image finder with direct map for Treatment"""
+    """Get image path - uses exact map for Treatment cards"""
     
-    # === TREATMENT: Use direct map first (most reliable) ===
+    # Treatment cards - use exact map first
     if suit == "Treatment (Bottom Left)":
         if card_name in TREATMENT_IMAGE_MAP:
             filename = TREATMENT_IMAGE_MAP[card_name]
@@ -37,13 +35,11 @@ def get_image_path(card_name, suit):
             if os.path.exists(os.path.join("images", filename)):
                 return os.path.join("images", filename)
     
-    # === Normal slug logic for other suits ===
+    # For all other suits - normal logic
     slug = card_name.lower()
-    slug = re.sub(r'[–—−-]', '_', slug)
-    slug = slug.replace("(", "").replace(")", "").replace("/", "_")
-    slug = slug.replace(",", "").replace("'", "").replace(":", "")
-    slug = re.sub(r'\s+', '_', slug.strip())
-    slug = re.sub(r'_+', '_', slug).strip("_")
+    slug = slug.replace(" – ", "_").replace(" - ", "_").replace("(", "").replace(")", "")
+    slug = slug.replace("/", "_").replace(",", "").replace("'", "").replace(":", "")
+    slug = "_".join(slug.split())
 
     if suit == "Meditation (Top)":
         expected = f"meditation_{slug}.jpg"
@@ -56,29 +52,10 @@ def get_image_path(card_name, suit):
     else:
         expected = f"{slug}.jpg"
 
-    # Check root folder
     if os.path.exists(expected):
         return expected
     if os.path.exists(os.path.join("images", expected)):
         return os.path.join("images", expected)
-
-    # Fallback keyword search
-    try:
-        all_images = glob.glob("*.jpg") + glob.glob("images/*.jpg")
-        key_words = [w for w in slug.split("_") if len(w) > 2]
-        best_match = None
-        best_score = 0
-        for img_path in all_images:
-            img_lower = img_path.lower()
-            score = sum(1 for kw in key_words if kw in img_lower)
-            if score > best_score:
-                best_score = score
-                best_match = img_path
-        min_required = 2
-        if best_match and best_score >= min_required:
-            return best_match
-    except Exception:
-        pass
 
     return None
 
