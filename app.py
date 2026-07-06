@@ -1,6 +1,8 @@
 import streamlit as st
 import random
 import os
+import re
+import glob
 
 st.set_page_config(
     page_title="Divine Reiki Light Oracle",
@@ -9,33 +11,49 @@ st.set_page_config(
 )
 
 def get_image_path(card_name, suit):
-    """Check root folder first, then images/ folder"""
-    # Create clean slug from card name
+    """Robust image finder - tries exact match first, then keyword fallback"""
+    # Aggressive cleaning
     slug = card_name.lower()
-    slug = slug.replace(" – ", "_").replace(" - ", "_").replace("(", "").replace(")", "")
-    slug = slug.replace("/", "_").replace(",", "").replace("'", "")
-    slug = "_".join(slug.split())
+    slug = re.sub(r'[–—−-]', '_', slug)           # any dash type → underscore
+    slug = slug.replace("(", "").replace(")", "")
+    slug = slug.replace("/", "_").replace(",", "").replace("'", "").replace(":", "")
+    slug = re.sub(r'\s+', '_', slug.strip())
+    slug = re.sub(r'_+', '_', slug)               # collapse multiple underscores
+    slug = slug.strip("_")
 
+    # Build expected filenames
     if suit == "Meditation (Top)":
-        filename = f"meditation_{slug}.jpg"
+        expected = f"meditation_{slug}.jpg"
     elif suit == "Chakra Focus (Left)":
-        filename = f"chakra_{slug}.jpg"
+        expected = f"chakra_{slug}.jpg"
     elif suit == "Reiki Symbol (Right)":
-        filename = f"symbol_{slug}.jpg"
+        expected = f"symbol_{slug}.jpg"
     elif suit == "Treatment (Bottom Left)":
-        filename = f"treatment_{slug}.jpg"
+        expected = f"treatment_{slug}.jpg"
     elif suit == "Crystal Ally (Bottom Right)":
-        filename = f"crystal_{slug}.jpg"
+        expected = f"crystal_{slug}.jpg"
     else:
-        filename = f"{slug}.jpg"
+        expected = f"{slug}.jpg"
 
-    # Check root folder first (where user currently has images)
-    if os.path.exists(filename):
-        return filename
-    # Then check images/ folder
-    images_path = os.path.join("images", filename)
-    if os.path.exists(images_path):
-        return images_path
+    # Check root first
+    if os.path.exists(expected):
+        return expected
+    # Then images/ folder
+    if os.path.exists(os.path.join("images", expected)):
+        return os.path.join("images", expected)
+
+    # Fallback: keyword search among all jpg files
+    try:
+        all_images = glob.glob("*.jpg") + glob.glob("images/*.jpg")
+        key_words = [w for w in slug.split("_") if len(w) > 2]
+        for img_path in all_images:
+            img_lower = img_path.lower()
+            # Match if at least 3 key words are found in the filename
+            if sum(1 for kw in key_words if kw in img_lower) >= min(3, len(key_words)):
+                return img_path
+    except Exception:
+        pass
+
     return None
 
 
